@@ -19,10 +19,10 @@
     </Border>
 
     <StackPanel Margin="22,18,22,16">
-      <TextBlock Text="Copyright 2026 Seabury Solutions" Style="{StaticResource BodyText}"/>
+      <TextBlock Text="Copyright 2026 @sanref" Style="{StaticResource BodyText}"/>
       <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
         <TextBlock Text="Contact me at: " Style="{StaticResource BodyText}"/>
-        <Button Content="fnas@seaburysolutions.com" Style="{StaticResource LinkButton}"
+        <Button Content="sanref@gmail.com" Style="{StaticResource LinkButton}"
                 Click="Mail_Click"/>
       </StackPanel>
     </StackPanel>
