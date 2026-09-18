@@ -1,11 +1,11 @@
 # Changelog
 
-Un archivo por version publicada, nombrado `<version>.md` (por ejemplo `4.0.1.md`).
-El listado de la carpeta hace de indice: no hay que mantener un indice aparte.
+One file per published version, named `<version>.md` (for example `4.0.1.md`).
+The folder listing acts as the index: there's no separate index to maintain.
 
-La version de cada entrada es la misma que reporta el ejecutable en
-`AssemblyFileVersion`, que sale de `next-version` en [GitVersion.yml](../GitVersion.yml)
-mientras no exista un tag git mayor.
+Each entry's version matches what the executable reports in `AssemblyFileVersion`, which
+comes from `next-version` in [GitVersion.yml](../GitVersion.yml) as long as no major git
+tag exists yet.
 
-Cada archivo describe **que cambia para quien usa la aplicacion**. Los detalles de
-implementacion solo entran cuando explican un cambio de comportamiento visible.
+Each file describes **what changes for the application's users**. Implementation details
+are only included when they explain a visible behavior change.
