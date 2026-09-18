@@ -59,4 +59,4 @@ Apache License version 2.0 — see [LICENSE.txt](LICENSE.txt).
 
 ## Credits
 
-Based on [Jira StopWatch](http://jirastopwatch.com) by Carsten Gehling. Uses [RestSharp](https://github.com/restsharp/RestSharp) for Jira communication.
+Based on [Jira StopWatch](http://jirastopwatch.com) by Carsten Gehling. Jira communication uses .NET's built-in `HttpClient` — no third-party runtime dependencies.
