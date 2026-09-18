@@ -1,0 +1,261 @@
+<UserControl x:Class="Time.Tracking.Jira.Wpf.Views.LedgerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:Time.Tracking.Jira.Wpf.Views"
+             xmlns:inf="clr-namespace:Time.Tracking.Jira.Wpf.Infrastructure"
+             Background="{StaticResource BgBrush}">
+  <!-- Option 1a. Table. The running row gets a 4px accent bar and a tinted fill;
+       everything else stays ink on ground. -->
+  <UserControl.Resources>
+    <!-- Key over title in the drop-down, the same two-line shape as the row at rest -->
+    <DataTemplate x:Key="IssueItemTemplate">
+      <StackPanel Margin="0,3">
+        <TextBlock Style="{StaticResource KeyText}" Text="{Binding Key}"/>
+        <TextBlock Style="{StaticResource SummaryText}" Text="{Binding Summary}" MaxWidth="320"/>
+      </StackPanel>
+    </DataTemplate>
+
+    <!-- A line of a cell's tooltip. It wraps where the cell trims — giving back what the
+         column cut is the tooltip's whole point — and drops out when it has nothing to say,
+         such as a title Jira has not sent yet. -->
+    <Style x:Key="TipLine" TargetType="TextBlock">
+      <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+      <Style.Triggers>
+        <Trigger Property="Text" Value="">
+          <Setter Property="Visibility" Value="Collapsed"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+  </UserControl.Resources>
+
+  <DockPanel>
+    <!-- header: total + connection + actions -->
+    <Border DockPanel.Dock="Top" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,0,2"
+            Padding="{StaticResource SectionPadding}">
+      <Grid>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock Style="{StaticResource KickerText}" Text="TODAY · UNLOGGED"/>
+          <TextBlock Style="{StaticResource TimeText}" FontSize="38" Text="{Binding TotalToday}"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
+          <views:ActionsBar/>
+          <Button Style="{StaticResource SecondaryButton}" Height="34" Command="{Binding LogAllCommand}" Margin="0,0,8,0">
+            <StackPanel Orientation="Horizontal">
+              <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoUpload}"/>
+              <TextBlock Text="Log all" Margin="7,0,0,0"/>
+            </StackPanel>
+          </Button>
+          <Button Style="{StaticResource PrimaryButton}" Command="{Binding AddIssueCommand}" Height="34">
+            <StackPanel Orientation="Horizontal">
+              <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoPlus}"/>
+              <TextBlock Text="Add issue" Margin="7,0,0,0"/>
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- status bar -->
+    <Border DockPanel.Dock="Bottom" Background="{StaticResource SurfaceBrush}" Padding="20,9">
+      <Grid>
+        <TextBlock Text="{Binding PendingSummary}" FontSize="11" Foreground="{StaticResource MutedTextBrush}"
+                   VerticalAlignment="Center"/>
+        <views:ViewSwitcher HorizontalAlignment="Right"/>
+      </Grid>
+    </Border>
+
+    <!-- column heads -->
+    <Border DockPanel.Dock="Top" BorderBrush="{StaticResource RowLineBrush}" BorderThickness="0,0,0,1" Padding="20,7">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+          <!-- 248 is what the strip measures: Start (88) + Log (32) + the rule + four 24px
+               minor actions. Anything less and it spills left over the time. -->
+          <ColumnDefinition Width="120"/><ColumnDefinition Width="248"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Style="{StaticResource KickerText}" Text="PARENT ISSUE"/>
+        <TextBlock Grid.Column="1" Style="{StaticResource KickerText}" Text="SUBTASK"/>
+        <TextBlock Grid.Column="2" Style="{StaticResource KickerText}" Text="TIME" TextAlignment="Right"/>
+      </Grid>
+    </Border>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <StackPanel>
+      <ItemsControl ItemsSource="{Binding Entries}" BorderThickness="0">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Grid>
+              <Border x:Name="RowBg" BorderBrush="{StaticResource RowLineBrush}" BorderThickness="0,0,0,1"
+                      Padding="{StaticResource RowPadding}" MinHeight="{StaticResource RowMinHeight}"
+                      Background="Transparent">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="120"/><ColumnDefinition Width="248"/>
+                  </Grid.ColumnDefinitions>
+                  <!-- At rest the cell is text; double-click swaps it for the combo, the way
+                       the v3 grid behaved. The combos write straight through to the row.
+                       The tooltip gives back the title the column trims, with the double-click
+                       hint under it; a cell with no issue yet keeps only the hint (see the
+                       triggers). -->
+                  <Grid x:Name="ParentCell" Margin="0,0,12,0" Background="Transparent"
+                        MouseLeftButtonDown="Cell_MouseLeftButtonDown">
+                    <Grid.ToolTip>
+                      <ToolTip>
+                        <StackPanel MaxWidth="360">
+                          <TextBlock Style="{StaticResource TipLine}" FontWeight="Bold" Text="{Binding ParentKey}"/>
+                          <TextBlock Style="{StaticResource TipLine}" Text="{Binding ParentSummary}"/>
+                          <TextBlock Style="{StaticResource TipLine}" FontSize="11" Margin="0,6,0,0"
+                                     Foreground="{StaticResource MutedTextBrush}" Text="Double-click to change the issue"/>
+                        </StackPanel>
+                      </ToolTip>
+                    </Grid.ToolTip>
+                    <StackPanel x:Name="ParentText" VerticalAlignment="Center">
+                      <TextBlock Style="{StaticResource KeyText}" Text="{Binding ParentKey}"/>
+                      <TextBlock Style="{StaticResource SummaryText}" Text="{Binding ParentSummary}"/>
+                    </StackPanel>
+                    <ComboBox x:Name="ParentEdit" Style="{StaticResource FieldComboBox}" Visibility="Collapsed"
+                              IsEditable="True" TextSearch.TextPath="Key" VerticalAlignment="Center"
+                              inf:IssueSearch.Enabled="True" ToolTip="Type any part of an issue key to search"
+                              inf:IssueSearch.Lookup="{Binding DataContext.IssueLookup,
+                                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              ItemTemplate="{StaticResource IssueItemTemplate}"
+                              ItemsSource="{Binding DataContext.ParentIssues,
+                                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              IsVisibleChanged="Edit_IsVisibleChanged"
+                              SelectionChanged="ParentEdit_SelectionChanged"
+                              LostFocus="ParentEdit_LostFocus"/>
+                  </Grid>
+                  <Grid x:Name="SubtaskCell" Grid.Column="1" Margin="0,0,12,0" Background="Transparent"
+                        MouseLeftButtonDown="Cell_MouseLeftButtonDown">
+                    <Grid.ToolTip>
+                      <ToolTip>
+                        <StackPanel MaxWidth="360">
+                          <TextBlock Style="{StaticResource TipLine}" FontWeight="Bold" Text="{Binding SubtaskKey}"/>
+                          <TextBlock Style="{StaticResource TipLine}" Text="{Binding SubtaskSummary}"/>
+                          <TextBlock Style="{StaticResource TipLine}" FontSize="11" Margin="0,6,0,0"
+                                     Foreground="{StaticResource MutedTextBrush}" Text="Double-click to change the subtask"/>
+                        </StackPanel>
+                      </ToolTip>
+                    </Grid.ToolTip>
+                    <StackPanel x:Name="SubtaskText" VerticalAlignment="Center">
+                      <TextBlock Style="{StaticResource KeyText}" Text="{Binding SubtaskKey}"/>
+                      <TextBlock Style="{StaticResource SummaryText}" Text="{Binding SubtaskSummary}"/>
+                    </StackPanel>
+                    <ComboBox x:Name="SubtaskEdit" Style="{StaticResource FieldComboBox}" Visibility="Collapsed"
+                              IsEditable="True" TextSearch.TextPath="Key" VerticalAlignment="Center"
+                              inf:IssueSearch.Enabled="True" ToolTip="Type any part of an issue key to search"
+                              ItemTemplate="{StaticResource IssueItemTemplate}"
+                              ItemsSource="{Binding Subtasks}"
+                              IsVisibleChanged="Edit_IsVisibleChanged"
+                              SelectionChanged="SubtaskEdit_SelectionChanged"
+                              LostFocus="SubtaskEdit_LostFocus"/>
+                  </Grid>
+                  <!-- Background is what makes the empty area of the cell hit-testable, so the
+                       double-click works on the whole column and not only on the digits. -->
+                  <TextBlock x:Name="Time" Grid.Column="2" Style="{StaticResource TimeText}"
+                             Background="Transparent" Cursor="Hand" ToolTip="Double-click to edit the time"
+                             TextAlignment="Right" VerticalAlignment="Center" Text="{Binding Elapsed}">
+                    <TextBlock.InputBindings>
+                      <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditTimeCommand}"/>
+                    </TextBlock.InputBindings>
+                  </TextBlock>
+                  <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right"
+                              VerticalAlignment="Center">
+                    <!-- Fixed width: "Pause" is wider than "Start", and the row must not
+                         reflow every time the timer is toggled. -->
+                    <Button x:Name="Toggle" Style="{StaticResource SecondaryButton}" Height="30" MinWidth="88"
+                            Command="{Binding ToggleCommand}" Margin="0,0,6,0">
+                      <StackPanel Orientation="Horizontal">
+                        <Path x:Name="ToggleIcon" Style="{StaticResource IconFill}" Data="{StaticResource IcoPlay}"/>
+                        <TextBlock x:Name="ToggleLabel" Text="Start" Margin="6,0,0,0"/>
+                      </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource IconButton}" ToolTip="Log to Jira" Command="{Binding LogCommand}">
+                      <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoUpload}"/>
+                    </Button>
+                    <!-- Everything past this rule is the quiet half of the strip -->
+                    <Border Width="1" Height="20" Background="{StaticResource RowLineBrush}" Margin="8,0,8,0"/>
+                    <Button x:Name="PinBtn" Style="{StaticResource MinorIconButton}" Margin="0,0,2,0"
+                            ToolTip="Pin to the top of the list" Command="{Binding PinCommand}">
+                      <Path Style="{StaticResource IconStrokeSmall}" Data="{StaticResource IcoPin}"/>
+                    </Button>
+                    <inf:MenuButton Style="{StaticResource MinorIconButton}" Margin="0,0,2,0" ToolTip="More actions">
+                      <Path Style="{StaticResource IconFill}" Data="{StaticResource IcoMore}" Width="13" Height="13"/>
+                      <inf:MenuButton.ContextMenu>
+                        <ContextMenu>
+                          <MenuItem Header="Open in Jira" Command="{Binding OpenInJiraCommand}"/>
+                          <MenuItem Header="Edit issue or subtask" Command="{Binding EditCommand}"/>
+                          <MenuItem Header="Reset timer to zero" Command="{Binding ResetCommand}"/>
+                        </ContextMenu>
+                      </inf:MenuButton.ContextMenu>
+                    </inf:MenuButton>
+                    <Button Style="{StaticResource MinorIconButton}" ToolTip="Remove from list" Command="{Binding RemoveCommand}">
+                      <Path Style="{StaticResource IconStrokeSmall}" Data="{StaticResource IcoClose}"/>
+                    </Button>
+                  </StackPanel>
+                </Grid>
+              </Border>
+              <!-- 4px accent bar, only while running -->
+              <Rectangle x:Name="Bar" Width="4" HorizontalAlignment="Left" Fill="{StaticResource AccentBrush}"
+                         Visibility="Collapsed"/>
+            </Grid>
+            <DataTemplate.Triggers>
+              <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                <Setter TargetName="Bar" Property="Visibility" Value="Visible"/>
+                <Setter TargetName="RowBg" Property="Background" Value="{StaticResource Accent100Brush}"/>
+                <Setter TargetName="Time" Property="Foreground" Value="{StaticResource Accent700Brush}"/>
+                <Setter TargetName="Toggle" Property="Style" Value="{StaticResource PrimaryButton}"/>
+                <Setter TargetName="ToggleIcon" Property="Data" Value="{StaticResource IcoPause}"/>
+                <Setter TargetName="ToggleLabel" Property="Text" Value="Pause"/>
+              </DataTrigger>
+              <DataTrigger Binding="{Binding HasTime}" Value="False">
+                <Setter TargetName="Time" Property="Foreground" Value="{StaticResource FaintTextBrush}"/>
+              </DataTrigger>
+              <!-- Pinned reads as a toggle switched on: solid ink, never accent, which belongs
+                   to the running row and to the primary action. -->
+              <DataTrigger Binding="{Binding IsPinned}" Value="True">
+                <Setter TargetName="PinBtn" Property="Background" Value="{StaticResource ToggleOnBrush}"/>
+                <Setter TargetName="PinBtn" Property="Foreground" Value="{StaticResource InkOnDarkBrush}"/>
+                <Setter TargetName="PinBtn" Property="ToolTip" Value="Unpin — let the row back down the list"/>
+              </DataTrigger>
+              <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                <Setter TargetName="ParentText" Property="Visibility" Value="Collapsed"/>
+                <Setter TargetName="ParentEdit" Property="Visibility" Value="Visible"/>
+                <Setter TargetName="SubtaskText" Property="Visibility" Value="Collapsed"/>
+                <Setter TargetName="SubtaskEdit" Property="Visibility" Value="Visible"/>
+              </DataTrigger>
+              <!-- No issue in the cell yet: nothing to name, so the tooltip is only the hint -->
+              <DataTrigger Binding="{Binding ParentKey}" Value="">
+                <Setter TargetName="ParentCell" Property="ToolTip" Value="Double-click to change the issue"/>
+              </DataTrigger>
+              <DataTrigger Binding="{Binding SubtaskKey}" Value="">
+                <Setter TargetName="SubtaskCell" Property="ToolTip" Value="Double-click to change the subtask"/>
+              </DataTrigger>
+            </DataTemplate.Triggers>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <!-- The v3 grid's trailing blank row: double-click starts a new one in place. -->
+      <Border x:Name="NewRow" BorderBrush="{StaticResource RowLineBrush}" BorderThickness="0,0,0,1"
+              Padding="{StaticResource RowPadding}" MinHeight="44" Background="Transparent"
+              Cursor="Hand" ToolTip="Double-click to add an issue here">
+        <Border.InputBindings>
+          <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding AddInlineCommand}"/>
+        </Border.InputBindings>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoPlus}" Width="13" Height="13"
+                Stroke="{StaticResource FaintTextBrush}"/>
+          <TextBlock Style="{StaticResource SummaryText}" Margin="9,0,0,0"
+                     Foreground="{StaticResource FaintTextBrush}" Text="Double-click to add an issue"/>
+        </StackPanel>
+      </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

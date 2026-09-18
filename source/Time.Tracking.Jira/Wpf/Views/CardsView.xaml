@@ -1,0 +1,140 @@
+<UserControl x:Class="Time.Tracking.Jira.Wpf.Views.CardsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:Time.Tracking.Jira.Wpf.Views"
+             xmlns:inf="clr-namespace:Time.Tracking.Jira.Wpf.Infrastructure"
+             Background="{StaticResource BgBrush}">
+  <!-- Option 1b. Comfortable cards, every action named — no icon guessing.
+       The running card is a solid accent field. -->
+  <DockPanel>
+    <Border DockPanel.Dock="Top" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,0,2" Padding="18,14">
+      <Grid>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <TextBlock Style="{StaticResource KickerText}" Text="TOTAL" VerticalAlignment="Bottom" Margin="0,0,8,3"/>
+          <TextBlock Style="{StaticResource TimeText}" FontSize="26" Text="{Binding TotalToday}"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+          <views:ActionsBar/>
+          <Button Style="{StaticResource SecondaryButton}" Height="34" Command="{Binding LogAllCommand}" Margin="0,0,8,0">
+            <StackPanel Orientation="Horizontal">
+              <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoUpload}"/>
+              <TextBlock Text="Log all" Margin="7,0,0,0"/>
+            </StackPanel>
+          </Button>
+          <Button Style="{StaticResource PrimaryButton}" Height="34" Command="{Binding AddIssueCommand}">
+            <StackPanel Orientation="Horizontal">
+              <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoPlus}"/>
+              <TextBlock Text="Add issue" Margin="7,0,0,0"/>
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Border DockPanel.Dock="Bottom" Background="{StaticResource SurfaceBrush}" Padding="20,9">
+      <Grid>
+        <TextBlock Text="{Binding PendingSummary}" FontSize="11" Foreground="{StaticResource MutedTextBrush}"
+                   VerticalAlignment="Center"/>
+        <views:ViewSwitcher HorizontalAlignment="Right"/>
+      </Grid>
+    </Border>
+
+    <ScrollViewer Background="{StaticResource SurfaceBrush}" VerticalScrollBarVisibility="Auto">
+      <ItemsControl ItemsSource="{Binding Entries}" Margin="18,16">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border x:Name="Card" Background="{StaticResource BgBrush}" BorderBrush="{StaticResource RowLineBrush}"
+                    BorderThickness="1" Padding="{StaticResource CardPadding}" Margin="0,0,0,12">
+              <StackPanel>
+                <Grid>
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                  <StackPanel>
+                    <TextBlock x:Name="Kicker" Style="{StaticResource KickerText}">
+                      <Run Text="{Binding ParentKey, Mode=OneWay}"/><Run Text=" · "/><Run Text="{Binding ParentSummary, Mode=OneWay}"/>
+                    </TextBlock>
+                    <TextBlock x:Name="Title" Style="{StaticResource KeyText}" FontSize="17" Margin="0,3,0,0">
+                      <Run Text="{Binding SubtaskKey, Mode=OneWay}"/>
+                      <Run Text="{Binding SubtaskSummary, Mode=OneWay}" FontWeight="Normal"/>
+                    </TextBlock>
+                  </StackPanel>
+                  <TextBlock x:Name="Time" Grid.Column="1" Style="{StaticResource TimeText}" FontSize="32"
+                             Background="Transparent" Cursor="Hand" ToolTip="Double-click to edit the time"
+                             VerticalAlignment="Top" Text="{Binding Elapsed}">
+                    <TextBlock.InputBindings>
+                      <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditTimeCommand}"/>
+                    </TextBlock.InputBindings>
+                  </TextBlock>
+                </Grid>
+                <Grid Margin="0,14,0,0">
+                  <StackPanel Orientation="Horizontal">
+                    <!-- Fixed width so toggling does not reflow the row of actions -->
+                    <Button x:Name="Toggle" Style="{StaticResource SecondaryButton}" MinWidth="92"
+                            Command="{Binding ToggleCommand}" Margin="0,0,8,0">
+                      <StackPanel Orientation="Horizontal">
+                        <Path x:Name="ToggleIcon" Style="{StaticResource IconFill}" Data="{StaticResource IcoPlay}"/>
+                        <TextBlock x:Name="ToggleLabel" Text="Start" Margin="7,0,0,0"/>
+                      </StackPanel>
+                    </Button>
+                    <Button x:Name="LogBtn" Style="{StaticResource SecondaryButton}" Command="{Binding LogCommand}" Margin="0,0,8,0">
+                      <StackPanel Orientation="Horizontal">
+                        <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoUpload}"/>
+                        <TextBlock Text="Log to Jira" Margin="7,0,0,0"/>
+                      </StackPanel>
+                    </Button>
+                    <!-- Cards names its actions rather than guessing with icons, so the
+                         overflow is a labelled "More" rather than the ⋮ the other views use. -->
+                    <inf:MenuButton x:Name="MoreBtn" Style="{StaticResource GhostButton}">
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="More"/>
+                        <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoChevronDown}"
+                              Width="12" Height="12" Margin="6,1,0,0"/>
+                      </StackPanel>
+                      <inf:MenuButton.ContextMenu>
+                        <ContextMenu>
+                          <MenuItem Header="Open in Jira" Command="{Binding OpenInJiraCommand}"/>
+                          <MenuItem Header="Edit issue or subtask" Command="{Binding EditCommand}"/>
+                          <MenuItem Header="Reset timer to zero" Command="{Binding ResetCommand}"/>
+                        </ContextMenu>
+                      </inf:MenuButton.ContextMenu>
+                    </inf:MenuButton>
+                    <!-- Named, like every other action here: the label is the state, so this
+                         view needs no pin mark of its own. -->
+                    <Button x:Name="PinBtn" Style="{StaticResource GhostButton}" Content="Pin" Command="{Binding PinCommand}"/>
+                  </StackPanel>
+                  <Button x:Name="RemoveBtn" Style="{StaticResource GhostButton}" Content="Remove"
+                          HorizontalAlignment="Right" Command="{Binding RemoveCommand}"/>
+                </Grid>
+              </StackPanel>
+            </Border>
+            <DataTemplate.Triggers>
+              <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                <Setter TargetName="Card" Property="Background" Value="{StaticResource AccentBrush}"/>
+                <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                <Setter TargetName="Kicker" Property="Foreground" Value="{StaticResource InkOnDarkBrush}"/>
+                <Setter TargetName="Title" Property="Foreground" Value="{StaticResource InkOnDarkBrush}"/>
+                <Setter TargetName="Time" Property="Foreground" Value="{StaticResource InkOnDarkBrush}"/>
+                <Setter TargetName="Toggle" Property="Style" Value="{StaticResource BaseButton}"/>
+                <Setter TargetName="Toggle" Property="Background" Value="{StaticResource BgBrush}"/>
+                <Setter TargetName="ToggleIcon" Property="Data" Value="{StaticResource IcoPause}"/>
+                <Setter TargetName="ToggleLabel" Property="Text" Value="Pause"/>
+                <Setter TargetName="LogBtn" Property="Style" Value="{StaticResource OnDarkButton}"/>
+                <Setter TargetName="MoreBtn" Property="Style" Value="{StaticResource OnDarkButton}"/>
+                <Setter TargetName="PinBtn" Property="Style" Value="{StaticResource OnDarkButton}"/>
+                <Setter TargetName="RemoveBtn" Property="Style" Value="{StaticResource OnDarkButton}"/>
+              </DataTrigger>
+              <DataTrigger Binding="{Binding HasTime}" Value="False">
+                <Setter TargetName="Time" Property="Foreground" Value="{StaticResource FaintTextBrush}"/>
+              </DataTrigger>
+              <DataTrigger Binding="{Binding IsPinned}" Value="True">
+                <Setter TargetName="PinBtn" Property="Content" Value="Unpin"/>
+                <Setter TargetName="PinBtn" Property="Background" Value="{StaticResource ToggleOnBrush}"/>
+                <Setter TargetName="PinBtn" Property="Foreground" Value="{StaticResource InkOnDarkBrush}"/>
+              </DataTrigger>
+            </DataTemplate.Triggers>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

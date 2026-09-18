@@ -1,0 +1,21 @@
+﻿workflow: GitHubFlow/v1
+# Linea de version actual. Manda mientras no exista un tag git mayor: al publicar
+# se etiqueta el commit (v4.0.3) y a partir de ahi la version sale del tag.
+# Lleva el prefijo 'v' a proposito: GitVersion 6 parsea este valor en modo Strict
+# aplicando tag-prefix, y sin la 'v' falla con "Failed to parse into a Semantic Version".
+next-version: 'v4.1.5'
+# AssemblyVersion se mantiene fijo dentro de cada major (4.0.0.0 para toda la linea 4.x).
+# Se fijo originalmente porque .NET guardaba user.config en una carpeta por AssemblyVersion
+# y moverla perdia la configuracion. Desde la 4.1 eso ya no aplica: la configuracion vive en
+# %LOCALAPPDATA%\Seabury Solutions\Time.Tracking.Jira\settings.json, una ruta que no depende de
+# ninguna version (ver SettingsStore). Se mantiene igual porque no molesta y evita cambios
+# de identidad del ensamblado dentro de un major.
+# La version real de cada release va en AssemblyFileVersion, que es de donde el
+# instalador (Time.Tracking.Jira.iss) toma su numero de version.
+assembly-versioning-scheme: Major
+assembly-file-versioning-scheme: MajorMinorPatch
+tag-prefix: 'v'
+major-version-bump-message: '\+semver:\s?(breaking|major)'
+minor-version-bump-message: '\+semver:\s?(feature|minor)'
+patch-version-bump-message: '\+semver:\s?(fix|patch)'
+no-bump-message: '\+semver:\s?(none|skip)'

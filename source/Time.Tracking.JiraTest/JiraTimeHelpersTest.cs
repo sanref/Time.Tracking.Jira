@@ -1,0 +1,137 @@
+﻿namespace Time.Tracking.JiraTest
+{
+    using NUnit.Framework;
+    using Time.Tracking.Jira;
+    using System;
+    using System.Globalization;
+    using System.Threading;
+
+    [TestFixture]
+    public class JiraTimeHelpersTest
+    {
+        [Test]
+        public void DateTimeToJiraDateTime_HandlesTimeZones()
+        {
+            Assert.That(JiraTimeHelpers.DateTimeToJiraDateTime(new DateTimeOffset(2015, 09, 20, 16, 40, 51, TimeSpan.Zero)), Is.EqualTo("2015-09-20T16:40:51.000+0000"));
+            Assert.That(JiraTimeHelpers.DateTimeToJiraDateTime(new DateTimeOffset(2015, 09, 20, 16, 40, 51, TimeSpan.FromHours(1))), Is.EqualTo("2015-09-20T16:40:51.000+0100"));
+            Assert.That(JiraTimeHelpers.DateTimeToJiraDateTime(new DateTimeOffset(2015, 09, 20, 16, 40, 51, TimeSpan.FromMinutes(9 * 60 + 30))), Is.EqualTo("2015-09-20T16:40:51.000+0930"));
+        }
+
+        [Test]
+        public void DateTimeToJiraDateTime_IgnoreRegionalSettings()
+        {
+            var currentCulture = Thread.CurrentThread.CurrentCulture;
+            var currentUICulture = Thread.CurrentThread.CurrentUICulture;
+            try
+            {
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("bn-BD");
+                Thread.CurrentThread.CurrentUICulture = new CultureInfo("bn-BD");
+                var s = JiraTimeHelpers.DateTimeToJiraDateTime(DateTimeOffset.Now);
+                Assert.That(JiraTimeHelpers.DateTimeToJiraDateTime(new DateTimeOffset(2015, 09, 20, 16, 40, 51, TimeSpan.Zero)), Is.EqualTo("2015-09-20T16:40:51.000+0000"));
+                Assert.That(JiraTimeHelpers.DateTimeToJiraDateTime(new DateTimeOffset(2015, 09, 20, 16, 40, 51, TimeSpan.FromHours(1))), Is.EqualTo("2015-09-20T16:40:51.000+0100"));
+                Assert.That(JiraTimeHelpers.DateTimeToJiraDateTime(new DateTimeOffset(2015, 09, 20, 16, 40, 51, TimeSpan.FromMinutes(9 * 60 + 30))), Is.EqualTo("2015-09-20T16:40:51.000+0930"));
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentCulture = currentCulture;
+                Thread.CurrentThread.CurrentUICulture = currentUICulture;
+            }
+        }
+
+        [Test]
+        public void TimeSpanToJira_FormatsDaysHoursMinutes()
+        {
+            Assert.That(JiraTimeHelpers.TimeSpanToJiraTime(new TimeSpan(12, 7, 0)), Is.EqualTo("12h 7m"));
+            Assert.That(JiraTimeHelpers.TimeSpanToJiraTime(new TimeSpan(9, 15, 0)), Is.EqualTo("9h 15m"));
+            Assert.That(JiraTimeHelpers.TimeSpanToJiraTime(new TimeSpan(1, 2, 5, 0)), Is.EqualTo("1d 2h 5m"));
+            Assert.That(JiraTimeHelpers.TimeSpanToJiraTime(new TimeSpan(21, 4, 0, 0)), Is.EqualTo("21d 4h 0m"));
+        }
+
+
+        [Test]
+        public void JiraTimeToTimeSpan_InvalidMinutesFails()
+        {
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("m"), Is.Null);
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("2 m"), Is.Null);
+        }
+
+        [Test]
+        public void JiraTimeToTimeSpan_InvalidHoursFails()
+        {
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("h"), Is.Null);
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("8 h"), Is.Null);
+        }
+
+        /*
+        [Test]
+        public void JiraTimeToTimeSpan_ValidHoursWithInvalidMinutesFails()
+        {
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("2h 5"), Is.Null);
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("2h m"), Is.Null);
+        }
+
+        [Test]
+        public void JiraTimeToTimeSpan_InvalidHoursWithValidMinutesFails()
+        {
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("2 5m"), Is.Null);
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("h 5m"), Is.Null);
+        }
+        */
+
+        [Test]
+        public void JiraTimeToTimeSpan_ParsesJiraStyleTimespan()
+        {
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("2h").Value.TotalMinutes, Is.EqualTo(120));
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("2h 5m").Value.TotalMinutes, Is.EqualTo(125));
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("5m").Value.TotalMinutes, Is.EqualTo(5));
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("0").Value.TotalMinutes, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void JiraTimeToTimeSpan_ParsesDecimalHours()
+        {
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("2.5h").Value.TotalMinutes, Is.EqualTo(150));
+        }
+
+        [Test]
+        public void JiraTimeToTimeSpan_IgnoresDecimalValueForMinutes()
+        {
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("10.5m").Value.TotalSeconds, Is.EqualTo(600));
+        }
+
+        [Test]
+        public void JiraTimeToTimeSpan_AllowsMinutesBeforeHours()
+        {
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("5m 2h").Value.TotalMinutes, Is.EqualTo(125));
+        }
+
+        [Test]
+        public void JiraTimeToTimeSpan_AllowsSillyValues()
+        {
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("2h 0m").Value.TotalMinutes, Is.EqualTo(120));
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("0h 5m").Value.TotalMinutes, Is.EqualTo(5));
+        }
+
+        [Test]
+        public void JiraTimeToTimeSpan_AllowsMultipleWhitespace()
+        {
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("1h      5m").Value.TotalMinutes, Is.EqualTo(65));
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("    2h   5m    ").Value.TotalMinutes, Is.EqualTo(125));
+        }
+
+        [Test]
+        public void JiraTimeToTimeSpan_AllowsNoWhitespace()
+        {
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("2h5m").Value.TotalMinutes, Is.EqualTo(125));
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("1d2h5m").Value.TotalMinutes, Is.EqualTo(1565));
+        }
+
+        [Test]
+        public void JiraTimeToTimeSpan_AllowsDays()
+        {
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("1d 2h 5m").Value.TotalMinutes, Is.EqualTo(1565));
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("1d 2h").Value.TotalMinutes, Is.EqualTo(1560));
+            Assert.That(JiraTimeHelpers.JiraTimeToTimeSpan("1d 5m").Value.TotalMinutes, Is.EqualTo(1445));
+        }
+    }
+}

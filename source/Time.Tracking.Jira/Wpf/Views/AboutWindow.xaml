@@ -1,0 +1,51 @@
+<Window x:Class="Time.Tracking.Jira.Wpf.Views.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="About Time.Tracking.Jira" Width="420" SizeToContent="Height"
+        ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BgBrush}" FontFamily="{StaticResource AppFont}"
+        UseLayoutRounding="True" SnapsToDevicePixels="True">
+  <StackPanel>
+
+    <!-- The version line is the poster: the one place red runs as a field. -->
+    <Border Background="{StaticResource AccentBrush}" Padding="22,24,22,20"
+            BorderBrush="{StaticResource TextBrush}" BorderThickness="0,0,0,2">
+      <StackPanel>
+        <TextBlock Text="TIME.TRACKING.JIRA" Style="{StaticResource KickerText}"
+                   Foreground="{StaticResource InkOnDarkBrush}" Opacity="0.85"/>
+        <TextBlock x:Name="VersionText" FontSize="40" FontWeight="ExtraBold"
+                   Foreground="{StaticResource InkOnDarkBrush}" Margin="0,6,0,0"/>
+      </StackPanel>
+    </Border>
+
+    <StackPanel Margin="22,18,22,16">
+      <TextBlock Text="Copyright 2026 Seabury Solutions" Style="{StaticResource BodyText}"/>
+      <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+        <TextBlock Text="Contact me at: " Style="{StaticResource BodyText}"/>
+        <Button Content="fnas@seaburysolutions.com" Style="{StaticResource LinkButton}"
+                Click="Mail_Click"/>
+      </StackPanel>
+    </StackPanel>
+
+    <Border Style="{StaticResource InnerRule}"/>
+
+    <TextBlock Margin="22,16,22,16" Style="{StaticResource BodyText}"
+               Foreground="{StaticResource MutedTextBrush}"
+               Text="Licensed under the Apache License, Version 2.0. This software is free to use under the terms specified in the license."/>
+
+    <Border Style="{StaticResource InnerRule}"/>
+
+    <StackPanel Margin="22,14,22,14">
+      <Button Content="Read License here" Style="{StaticResource LinkButton}"
+              Click="License_Click"/>
+    </StackPanel>
+
+    <Border Style="{StaticResource SectionRule}"/>
+
+    <Border Background="{StaticResource SurfaceBrush}" Padding="22,14">
+      <Button Content="Close" MinWidth="96" Height="34" HorizontalAlignment="Right"
+              HorizontalContentAlignment="Center" IsDefault="True" IsCancel="True"
+              Style="{StaticResource PrimaryButton}" Click="Close_Click"/>
+    </Border>
+  </StackPanel>
+</Window>

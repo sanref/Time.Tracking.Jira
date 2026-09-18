@@ -1,0 +1,133 @@
+<Window x:Class="Time.Tracking.Jira.Wpf.Views.LogAllWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Log all to Jira" Width="560" SizeToContent="Height"
+        ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BgBrush}" FontFamily="{StaticResource AppFont}"
+        UseLayoutRounding="True" SnapsToDevicePixels="True" KeyDown="Window_KeyDown">
+
+  <Window.InputBindings>
+    <KeyBinding Key="Return" Modifiers="Control" Command="{Binding PostCommand}"/>
+  </Window.InputBindings>
+
+  <Window.Resources>
+    <!-- A small line under the row's title. Drops out when it has nothing to say, like the
+         Ledger's tooltip lines: most rows have no parked estimate, none has a block reason
+         once it has an issue, and the status only appears once the row has been sent. -->
+    <Style x:Key="NoteText" TargetType="TextBlock">
+      <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+      <Setter Property="Margin" Value="0,2,0,0"/>
+      <Style.Triggers>
+        <Trigger Property="Text" Value="">
+          <Setter Property="Visibility" Value="Collapsed"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+  </Window.Resources>
+
+  <StackPanel>
+
+    <!-- What is about to go, stated before anything is sent: the same header as the
+         one-row dialog, with the ticked rows' total in place of one row's time. -->
+    <Border Padding="22,18,22,14" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,0,2">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel VerticalAlignment="Bottom">
+          <TextBlock Text="LOG ALL TO JIRA" Style="{StaticResource KickerText}"/>
+          <TextBlock Text="{Binding SelectionText}" FontSize="15" FontWeight="ExtraBold" Margin="0,3,0,0"/>
+          <TextBlock Style="{StaticResource SummaryText}" TextWrapping="Wrap" TextTrimming="None"
+                     Text="Each row is logged with its own comment. To change a start time or the estimate, use the row's own Log button."/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="20,0,0,0">
+          <TextBlock Text="SELECTED" Style="{StaticResource KickerText}" TextAlignment="Right"/>
+          <TextBlock Text="{Binding SelectedTotalText}" Style="{StaticResource TimeText}"
+                     FontSize="30" LineHeight="30" TextAlignment="Right" Margin="0,2,0,0"
+                     Foreground="{StaticResource Accent700Brush}"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="460">
+      <ItemsControl ItemsSource="{Binding Rows}" Focusable="False">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border x:Name="RowBd" BorderBrush="{StaticResource RowLineBrush}" BorderThickness="0,0,0,1"
+                    Padding="22,12,22,12">
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Style="{StaticResource ModernCheckBox}" VerticalAlignment="Top" Margin="0,2,12,0"
+                          IsChecked="{Binding IsSelected}" IsEnabled="{Binding CanSelect}"
+                          ToolTip="Log this row"/>
+                <StackPanel Grid.Column="1">
+                  <TextBlock x:Name="Key" Style="{StaticResource KeyText}" Text="{Binding KeyText}"/>
+                  <TextBlock Style="{StaticResource NoteText}" FontSize="11.5" Margin="0"
+                             TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Text="{Binding IssueSummary}"/>
+                  <TextBlock Style="{StaticResource NoteText}" Text="{Binding StartedText}"/>
+                  <TextBlock Style="{StaticResource NoteText}" Text="{Binding EstimateNote}"/>
+                  <TextBlock Style="{StaticResource NoteText}" Text="{Binding BlockedReason}"/>
+                  <TextBox x:Name="CommentBox" Style="{StaticResource ModernTextArea}" MinHeight="34" MaxHeight="76"
+                           Margin="0,8,0,0" IsEnabled="{Binding CanSelect}"
+                           ToolTip="Comment for this worklog (optional)"
+                           Text="{Binding Comment, UpdateSourceTrigger=PropertyChanged}"/>
+                  <TextBlock x:Name="Status" Style="{StaticResource NoteText}" Margin="0,6,0,0"
+                             Text="{Binding StatusText}"/>
+                </StackPanel>
+                <TextBlock x:Name="Time" Grid.Column="2" Style="{StaticResource TimeText}" Margin="16,0,0,0"
+                           VerticalAlignment="Top" Text="{Binding ElapsedText}"/>
+              </Grid>
+            </Border>
+            <DataTemplate.Triggers>
+              <!-- Nothing to log it against: no comment box, and the row reads as set aside -->
+              <DataTrigger Binding="{Binding IsBlocked}" Value="True">
+                <Setter TargetName="CommentBox" Property="Visibility" Value="Collapsed"/>
+                <Setter TargetName="Key" Property="Foreground" Value="{StaticResource FaintTextBrush}"/>
+                <Setter TargetName="Time" Property="Foreground" Value="{StaticResource FaintTextBrush}"/>
+              </DataTrigger>
+              <!-- The text area has no disabled look of its own -->
+              <DataTrigger Binding="{Binding CanSelect}" Value="False">
+                <Setter TargetName="CommentBox" Property="Opacity" Value="0.55"/>
+              </DataTrigger>
+              <DataTrigger Binding="{Binding State}" Value="Logged">
+                <Setter TargetName="Status" Property="Foreground" Value="{StaticResource PositiveBrush}"/>
+                <Setter TargetName="Status" Property="FontWeight" Value="SemiBold"/>
+              </DataTrigger>
+              <DataTrigger Binding="{Binding State}" Value="Failed">
+                <Setter TargetName="Status" Property="Foreground" Value="{StaticResource Accent700Brush}"/>
+                <Setter TargetName="Status" Property="FontWeight" Value="SemiBold"/>
+              </DataTrigger>
+            </DataTemplate.Triggers>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <Border Style="{StaticResource SectionRule}"/>
+
+    <!-- FOOTER -->
+    <Border Background="{StaticResource SurfaceBrush}" Padding="22,14">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="{Binding FooterText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                   FontFamily="{StaticResource AppFont}" FontSize="11" Margin="0,0,12,0"
+                   Foreground="{StaticResource MutedTextBrush}"/>
+        <StackPanel Grid.Column="1" Orientation="Horizontal">
+          <Button Content="Close" MinWidth="80" Height="34" HorizontalContentAlignment="Center"
+                  Style="{StaticResource SecondaryButton}" IsEnabled="{Binding CanClose}"
+                  Click="Close_Click"/>
+          <Button Content="Log selected" MinWidth="104" Height="34" Margin="8,0,0,0"
+                  HorizontalContentAlignment="Center" Style="{StaticResource PrimaryButton}"
+                  Command="{Binding PostCommand}"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+  </StackPanel>
+</Window>

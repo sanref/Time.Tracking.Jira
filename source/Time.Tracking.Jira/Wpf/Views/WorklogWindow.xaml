@@ -1,0 +1,116 @@
+<Window x:Class="Time.Tracking.Jira.Wpf.Views.WorklogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:inf="clr-namespace:Time.Tracking.Jira.Wpf.Infrastructure"
+        Title="Submit worklog" Width="480" SizeToContent="Height"
+        ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BgBrush}" FontFamily="{StaticResource AppFont}"
+        UseLayoutRounding="True" SnapsToDevicePixels="True">
+
+  <Window.InputBindings>
+    <KeyBinding Key="Return" Modifiers="Control" Command="{Binding SubmitCommand}"/>
+  </Window.InputBindings>
+
+  <StackPanel>
+
+    <!-- What is being posted, stated before anything is asked. -->
+    <Border Padding="22,18,22,14" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,0,2">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel VerticalAlignment="Bottom">
+          <TextBlock Text="POSTING TO" Style="{StaticResource KickerText}"/>
+          <TextBlock Text="{Binding IssueKey}" FontSize="15" FontWeight="ExtraBold" Margin="0,3,0,0"/>
+          <TextBlock Text="{Binding IssueSummary}" Style="{StaticResource SummaryText}"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="20,0,0,0">
+          <TextBlock Text="TIME" Style="{StaticResource KickerText}" TextAlignment="Right"/>
+          <TextBlock Text="{Binding ElapsedText}" Style="{StaticResource TimeText}"
+                     FontSize="30" LineHeight="30" TextAlignment="Right" Margin="0,2,0,0"
+                     Foreground="{StaticResource Accent700Brush}"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- COMMENT -->
+    <StackPanel Margin="22,16,22,16">
+      <TextBlock Style="{StaticResource FieldLabel}" Margin="0,0,0,8" HorizontalAlignment="Left">
+        <Run Text="Add a Comment to your work log"/>
+        <Run Text="(optional)" FontWeight="Normal" Foreground="{StaticResource MutedTextBrush}"/>
+      </TextBlock>
+      <TextBox Style="{StaticResource ModernTextArea}" MinHeight="104"
+               Text="{Binding Comment, UpdateSourceTrigger=PropertyChanged}"/>
+    </StackPanel>
+
+    <Border Style="{StaticResource InnerRule}"/>
+
+    <!-- START TIME -->
+    <Grid Margin="22,14,22,14">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="110"/><ColumnDefinition Width="*"/><ColumnDefinition Width="8"/>
+        <ColumnDefinition Width="86"/>
+      </Grid.ColumnDefinitions>
+      <TextBlock Text="Start Time" Style="{StaticResource FieldLabel}"/>
+      <DatePicker Grid.Column="1" Style="{StaticResource ModernDatePicker}"
+                  SelectedDate="{Binding StartDate}"/>
+      <TextBox Grid.Column="3" Style="{StaticResource ModernTextBox}" MaxLength="5"
+               inf:TimeMask.Enabled="True" ToolTip="24-hour time, HH:mm"
+               Text="{Binding StartTimeText, UpdateSourceTrigger=LostFocus}"/>
+    </Grid>
+
+    <Border Style="{StaticResource InnerRule}"/>
+
+    <!-- REMAINING ESTIMATE -->
+    <StackPanel Margin="22,16,22,16">
+      <TextBlock Text="REMAINING ESTIMATE" Style="{StaticResource SectionKicker}"/>
+      <StackPanel>
+        <RadioButton GroupName="Rem" Content="Adjust Automatically" Margin="0,0,0,9"
+                     Style="{StaticResource ModernRadioButton}" IsChecked="{Binding IsAdjustAuto}"/>
+        <RadioButton GroupName="Rem" Content="Leave Unchanged" Margin="0,0,0,9"
+                     Style="{StaticResource ModernRadioButton}" IsChecked="{Binding IsLeaveUnchanged}"/>
+        <Grid Margin="0,0,0,9">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="110"/><ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          <RadioButton GroupName="Rem" Content="Set To" Style="{StaticResource ModernRadioButton}"
+                       IsChecked="{Binding IsSetTo}"/>
+          <TextBox Grid.Column="1" Height="30" Style="{StaticResource ModernTextBox}"
+                   IsEnabled="{Binding IsSetTo}"
+                   Text="{Binding SetToValue, UpdateSourceTrigger=PropertyChanged}"/>
+        </Grid>
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="110"/><ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          <RadioButton GroupName="Rem" Content="Reduce By" Style="{StaticResource ModernRadioButton}"
+                       IsChecked="{Binding IsReduceBy}"/>
+          <TextBox Grid.Column="1" Height="30" Style="{StaticResource ModernTextBox}"
+                   IsEnabled="{Binding IsReduceBy}"
+                   Text="{Binding ReduceByValue, UpdateSourceTrigger=PropertyChanged}"/>
+        </Grid>
+      </StackPanel>
+    </StackPanel>
+
+    <Border Style="{StaticResource SectionRule}"/>
+
+    <!-- FOOTER -->
+    <Border Background="{StaticResource SurfaceBrush}" Padding="22,14">
+      <Grid>
+        <TextBlock Text="Press CTRL-Enter to submit" VerticalAlignment="Center"
+                   FontFamily="{StaticResource AppFont}" FontSize="11"
+                   Foreground="{StaticResource MutedTextBrush}"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+          <Button Content="Save for later" Height="34" Style="{StaticResource GhostButton}"
+                  Click="SaveForLater_Click"/>
+          <Button Content="Cancel" MinWidth="80" Height="34" Margin="8,0,0,0" IsCancel="True"
+                  HorizontalContentAlignment="Center" Style="{StaticResource SecondaryButton}"
+                  Click="Cancel_Click"/>
+          <Button Content="Submit" MinWidth="88" Height="34" Margin="8,0,0,0" IsDefault="True"
+                  HorizontalContentAlignment="Center" Style="{StaticResource PrimaryButton}"
+                  Click="Submit_Click"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+  </StackPanel>
+</Window>

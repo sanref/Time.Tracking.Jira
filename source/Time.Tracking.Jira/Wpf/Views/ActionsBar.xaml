@@ -1,0 +1,43 @@
+<UserControl x:Class="Time.Tracking.Jira.Wpf.Views.ActionsBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Connection, refresh, focus and settings. Every view puts this in its own header, so
+       the four layouts differ in shape without differing in what you can reach. -->
+  <UserControl.Resources>
+    <!-- Green when the session is live, muted otherwise. Red would read as an error here,
+         and it belongs to the primary action and the running timer. -->
+    <Style x:Key="ConnectionDot" TargetType="Ellipse">
+      <Setter Property="Width" Value="7"/>
+      <Setter Property="Height" Value="7"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Fill" Value="{StaticResource FaintTextBrush}"/>
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding IsConnected}" Value="True">
+          <Setter Property="Fill" Value="{StaticResource PositiveBrush}"/>
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+  </UserControl.Resources>
+
+  <StackPanel Orientation="Horizontal">
+    <Button Style="{StaticResource GhostButton}" Height="34" Margin="0,0,10,0"
+            Command="{Binding ReconnectCommand}" ToolTip="Click to reconnect to Jira">
+      <StackPanel Orientation="Horizontal">
+        <Ellipse Style="{StaticResource ConnectionDot}"/>
+        <TextBlock Text="{Binding ConnectionStatus}" FontSize="11.5" FontWeight="SemiBold" Margin="7,0,0,0"/>
+      </StackPanel>
+    </Button>
+    <Button Style="{StaticResource IconButton}" Height="34" Margin="0,0,6,0"
+            ToolTip="Refresh issue titles from Jira" Command="{Binding RefreshCommand}">
+      <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoRefresh}"/>
+    </Button>
+    <Button Style="{StaticResource IconButton}" Height="34" Margin="0,0,6,0"
+            ToolTip="Shrink to the mini window" Command="{Binding FocusCommand}">
+      <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoFocus}"/>
+    </Button>
+    <Button Style="{StaticResource IconButton}" Height="34" Margin="0,0,10,0"
+            ToolTip="Settings" Command="{Binding SettingsCommand}">
+      <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoSettings}"/>
+    </Button>
+  </StackPanel>
+</UserControl>

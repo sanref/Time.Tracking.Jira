@@ -1,0 +1,78 @@
+<UserControl x:Class="Time.Tracking.Jira.Wpf.Views.ViewSwitcher"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Time.Tracking.Jira.Wpf.ViewModels">
+  <!-- One glyph per layout, in every footer. Which one is active is shown, not just
+       named: the matching button gets a filled chip instead of a bare outline — never the
+       accent color, which the theme reserves for the primary action and the running state. -->
+  <UserControl.Resources>
+    <Style x:Key="ViewSwitchButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+      <Setter Property="Width" Value="30"/>
+      <Setter Property="Height" Value="26"/>
+      <Setter Property="BorderBrush" Value="Transparent"/>
+      <Setter Property="Margin" Value="0,0,4,0"/>
+    </Style>
+  </UserControl.Resources>
+
+  <StackPanel Orientation="Horizontal">
+    <Button ToolTip="Ledger — table, one row per subtask"
+            Command="{Binding SwitchViewCommand}" CommandParameter="{x:Static vm:ViewMode.Ledger}">
+      <Button.Style>
+        <Style TargetType="Button" BasedOn="{StaticResource ViewSwitchButton}">
+          <Style.Triggers>
+            <DataTrigger Binding="{Binding ViewMode}" Value="Ledger">
+              <Setter Property="Background" Value="{StaticResource ChipBrush}"/>
+              <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            </DataTrigger>
+          </Style.Triggers>
+        </Style>
+      </Button.Style>
+      <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoViewLedger}"/>
+    </Button>
+
+    <Button ToolTip="Cards — roomy, every action named"
+            Command="{Binding SwitchViewCommand}" CommandParameter="{x:Static vm:ViewMode.Cards}">
+      <Button.Style>
+        <Style TargetType="Button" BasedOn="{StaticResource ViewSwitchButton}">
+          <Style.Triggers>
+            <DataTrigger Binding="{Binding ViewMode}" Value="Cards">
+              <Setter Property="Background" Value="{StaticResource ChipBrush}"/>
+              <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            </DataTrigger>
+          </Style.Triggers>
+        </Style>
+      </Button.Style>
+      <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoViewCards}"/>
+    </Button>
+
+    <Button ToolTip="Focus — running timer on stage"
+            Command="{Binding SwitchViewCommand}" CommandParameter="{x:Static vm:ViewMode.Focus}">
+      <Button.Style>
+        <Style TargetType="Button" BasedOn="{StaticResource ViewSwitchButton}">
+          <Style.Triggers>
+            <DataTrigger Binding="{Binding ViewMode}" Value="Focus">
+              <Setter Property="Background" Value="{StaticResource ChipBrush}"/>
+              <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            </DataTrigger>
+          </Style.Triggers>
+        </Style>
+      </Button.Style>
+      <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoViewFocus}"/>
+    </Button>
+
+    <Button ToolTip="Grid — two columns, keyboard first"
+            Command="{Binding SwitchViewCommand}" CommandParameter="{x:Static vm:ViewMode.Grid}">
+      <Button.Style>
+        <Style TargetType="Button" BasedOn="{StaticResource ViewSwitchButton}">
+          <Style.Triggers>
+            <DataTrigger Binding="{Binding ViewMode}" Value="Grid">
+              <Setter Property="Background" Value="{StaticResource ChipBrush}"/>
+              <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            </DataTrigger>
+          </Style.Triggers>
+        </Style>
+      </Button.Style>
+      <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoViewGrid}"/>
+    </Button>
+  </StackPanel>
+</UserControl>

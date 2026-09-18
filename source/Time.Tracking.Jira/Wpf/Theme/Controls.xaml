@@ -1,0 +1,289 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- 2px accent focus rectangle, offset 2px. Replaces the default blue ring. -->
+  <Style x:Key="AccentFocusVisual">
+    <Setter Property="Control.Template">
+      <Setter.Value>
+        <ControlTemplate>
+          <Rectangle Margin="-2" StrokeThickness="2" Stroke="{StaticResource AccentBrush}" SnapsToDevicePixels="True"/>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Base button: square, flush-left label, themed states. -->
+  <Style x:Key="BaseButton" TargetType="ButtonBase">
+    <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="FontSize" Value="12.5"/>
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="Padding" Value="12,6,12,6"/>
+    <Setter Property="MinHeight" Value="32"/>
+    <Setter Property="Cursor" Value="Hand"/>
+    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ButtonBase">
+          <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  SnapsToDevicePixels="True">
+            <ContentPresenter Margin="{TemplateBinding Padding}"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="Center" RecognizesAccessKey="True"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
+              <Setter Property="Foreground" Value="{StaticResource Neutral600Brush}"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
+    <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+    <Setter Property="Foreground" Value="{StaticResource InkOnDarkBrush}"/>
+    <Style.Triggers>
+      <Trigger Property="IsMouseOver" Value="True">
+        <Setter Property="Background" Value="{StaticResource Accent600Brush}"/>
+      </Trigger>
+      <Trigger Property="IsPressed" Value="True">
+        <Setter Property="Background" Value="{StaticResource Accent700Brush}"/>
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
+  <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
+    <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}"/>
+    <Style.Triggers>
+      <Trigger Property="IsMouseOver" Value="True">
+        <Setter Property="Background" Value="{StaticResource HoverTintBrush}"/>
+      </Trigger>
+      <Trigger Property="IsPressed" Value="True">
+        <Setter Property="Background" Value="{StaticResource PressTintBrush}"/>
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
+  <Style x:Key="GhostButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
+    <Setter Property="Foreground" Value="{StaticResource Neutral700Brush}"/>
+    <Style.Triggers>
+      <Trigger Property="IsMouseOver" Value="True">
+        <Setter Property="Background" Value="{StaticResource HoverTintBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+      </Trigger>
+      <Trigger Property="IsPressed" Value="True">
+        <Setter Property="Background" Value="{StaticResource PressTintBrush}"/>
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
+  <!-- Square icon button. Content is a Path from the Lucide set (see IconPaths below). -->
+  <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+    <Setter Property="Width" Value="32"/>
+    <Setter Property="Height" Value="30"/>
+    <Setter Property="Padding" Value="0"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+  </Style>
+
+  <!-- Pin, reset, edit and remove: the row actions reached least often. Smaller and without
+       a border, so they group into one quiet cluster instead of competing with Start and Log
+       — which is also what gives the row back the width the pin took. -->
+  <Style x:Key="MinorIconButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
+    <Setter Property="Width" Value="24"/>
+    <Setter Property="Height" Value="24"/>
+    <Setter Property="MinHeight" Value="24"/>
+    <Setter Property="Padding" Value="0"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+  </Style>
+
+  <!-- On a dark (running) surface -->
+  <Style x:Key="OnDarkButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
+    <Setter Property="Foreground" Value="{StaticResource InkOnDarkBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource OnDarkLineBrush}"/>
+    <Style.Triggers>
+      <Trigger Property="IsMouseOver" Value="True">
+        <Setter Property="Background" Value="{StaticResource Accent600Brush}"/>
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
+  <!-- Row "more actions" menu. The app has no other menus, so these implicit styles are
+       safe to apply app-wide. Square, same ink and divider as the buttons. -->
+  <Style TargetType="ContextMenu">
+    <Setter Property="Background" Value="{StaticResource BgBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="Padding" Value="0,4"/>
+    <Setter Property="HasDropShadow" Value="False"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ContextMenu">
+          <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="True">
+            <StackPanel IsItemsHost="True" Margin="{TemplateBinding Padding}"
+                        KeyboardNavigation.DirectionalNavigation="Cycle"/>
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style TargetType="MenuItem">
+    <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+    <Setter Property="FontSize" Value="12.5"/>
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+    <Setter Property="Padding" Value="14,7"/>
+    <Setter Property="Cursor" Value="Hand"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="MenuItem">
+          <Border x:Name="Bd" Background="Transparent" Padding="{TemplateBinding Padding}"
+                  SnapsToDevicePixels="True">
+            <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsHighlighted" Value="True">
+              <Setter TargetName="Bd" Property="Background" Value="{StaticResource HoverTintBrush}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter Property="Foreground" Value="{StaticResource FaintTextBrush}"/>
+              <Setter Property="Cursor" Value="Arrow"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Type -->
+  <Style x:Key="KickerText" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+    <Setter Property="FontSize" Value="10"/>
+    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}"/>
+    <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+  </Style>
+
+  <Style x:Key="KeyText" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+    <Setter Property="FontSize" Value="13.5"/>
+    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+    <!-- Narrow windows should ellipsize the key, not slice a digit off it -->
+    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+  </Style>
+
+  <Style x:Key="SummaryText" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+    <Setter Property="FontSize" Value="11.5"/>
+    <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}"/>
+    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+  </Style>
+
+  <!-- Tabular figures: digits keep the same advance width as the timer ticks. -->
+  <Style x:Key="TimeText" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+    <Setter Property="FontWeight" Value="ExtraBold"/>
+    <Setter Property="FontSize" Value="19"/>
+    <Setter Property="Typography.NumeralAlignment" Value="Tabular"/>
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+  </Style>
+
+  <Style x:Key="DisplayTimeText" TargetType="TextBlock" BasedOn="{StaticResource TimeText}">
+    <Setter Property="FontSize" Value="64"/>
+    <Setter Property="LineHeight" Value="64"/>
+  </Style>
+
+  <!-- Square text box, same ink and divider as the buttons. -->
+  <Style x:Key="FieldTextBox" TargetType="TextBox">
+    <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+    <Setter Property="FontSize" Value="12.5"/>
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+    <Setter Property="Background" Value="{StaticResource BgBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="Padding" Value="8,6"/>
+    <Setter Property="MinHeight" Value="32"/>
+  </Style>
+
+  <!-- Editable combo, square, with the accent focus rectangle. The drop-down list keeps
+       the app font so a two-line item template lines up with the rest of the UI. -->
+  <Style x:Key="FieldComboBox" TargetType="ComboBox">
+    <Setter Property="FontFamily" Value="{StaticResource AppFont}"/>
+    <Setter Property="FontSize" Value="12.5"/>
+    <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+    <Setter Property="Background" Value="{StaticResource BgBrush}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="Padding" Value="8,6"/>
+    <Setter Property="MinHeight" Value="32"/>
+    <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
+  </Style>
+
+  <!-- Lucide icon geometries, 24x24 viewbox. Use inside a Path with Stretch="Uniform". -->
+  <Geometry x:Key="IcoPlay">M6,3 L20,12 L6,21 Z</Geometry>
+  <Geometry x:Key="IcoPause">M6,4 H10 V20 H6 Z M14,4 H18 V20 H14 Z</Geometry>
+  <Geometry x:Key="IcoReset">M3,2 V8 H9 M21,12 A9,9 0 0 0 6,5.3 L3,8</Geometry>
+  <Geometry x:Key="IcoUpload">M21,15 V19 A2,2 0 0 1 19,21 H5 A2,2 0 0 1 3,19 V15 M17,8 L12,3 L7,8 M12,3 V15</Geometry>
+  <Geometry x:Key="IcoPlus">M5,12 H19 M12,5 V19</Geometry>
+  <Geometry x:Key="IcoClose">M6,6 L18,18 M18,6 L6,18</Geometry>
+  <!-- Added for the Ledger toolbar. Keep the drawn bounds square: IconStroke stretches
+       each geometry uniformly into a 16x16 box, so a wide, short path comes out squashed. -->
+  <Geometry x:Key="IcoRefresh">M21,12 A9,9 0 1 1 12,3 C14.5,3 16.9,4 18.7,5.7 L21,8 M21,3 V8 H16</Geometry>
+  <Geometry x:Key="IcoSettings">M21,4 H14 M10,4 H3 M21,12 H12 M8,12 H3 M21,20 H16 M12,20 H3 M14,2 V6 M8,10 V14 M16,18 V22</Geometry>
+  <Geometry x:Key="IcoFocus">M22,12 H18 M6,12 H2 M12,6 V2 M12,22 V18 M12,8 A4,4 0 0 1 12,16 A4,4 0 0 1 12,8</Geometry>
+  <Geometry x:Key="IcoEdit">M12,20 H21 M16.5,3.5 A2.12,2.12 0 0 1 19.5,6.5 L7,19 L3,20 L4,16 Z</Geometry>
+  <!-- Pushpin seen from the side: head bar, shaft, base and needle. Drawn open and with
+       straight segments because it is used at 13px, where a closed flare fills in. -->
+  <Geometry x:Key="IcoPin">M8,3 H16 M10,3 V9 L6,13 H18 L14,9 V3 M12,13 V21</Geometry>
+  <!-- "More actions" — three dots. Filled (IconFill), so it reads at 13px where a stroked
+       ring would not. -->
+  <GeometryGroup x:Key="IcoMore">
+    <EllipseGeometry Center="12,5"  RadiusX="2" RadiusY="2"/>
+    <EllipseGeometry Center="12,12" RadiusX="2" RadiusY="2"/>
+    <EllipseGeometry Center="12,19" RadiusX="2" RadiusY="2"/>
+  </GeometryGroup>
+  <!-- Small caret for the Cards "More" button, which is labelled rather than an icon -->
+  <Geometry x:Key="IcoChevronDown">M6,9 L12,15 L18,9</Geometry>
+
+  <!-- Footer view-switcher: one glyph per layout, drawn to look like the layout itself
+       rather than an abstract symbol. Square bounds (3..21 both axes) so IconStroke does
+       not squash them. Distinct on purpose from IcoFocus above, which opens the separate
+       floating focus widget, not the Focus view. -->
+  <Geometry x:Key="IcoViewLedger">M3,3 H21 V21 H3 Z M3,9 H21 M3,15 H21</Geometry>
+  <Geometry x:Key="IcoViewCards">M3,3 H21 V10 H3 Z M3,14 H21 V21 H3 Z</Geometry>
+  <Geometry x:Key="IcoViewFocus">M3,3 H21 V11 H3 Z M3,15 H21 M3,19 H21</Geometry>
+  <Geometry x:Key="IcoViewGrid">M3,3 H11 V11 H3 Z M13,3 H21 V11 H13 Z M3,13 H11 V21 H3 Z M13,13 H21 V21 H13 Z</Geometry>
+
+  <!-- Filled glyph (play/pause) -->
+  <Style x:Key="IconFill" TargetType="Path">
+    <Setter Property="Width" Value="14"/><Setter Property="Height" Value="14"/>
+    <Setter Property="Stretch" Value="Uniform"/>
+    <Setter Property="Fill" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
+  </Style>
+  <!-- Stroked glyph (everything else) -->
+  <Style x:Key="IconStroke" TargetType="Path">
+    <Setter Property="Width" Value="16"/><Setter Property="Height" Value="16"/>
+    <Setter Property="Stretch" Value="Uniform"/>
+    <Setter Property="StrokeThickness" Value="2"/>
+    <Setter Property="StrokeStartLineCap" Value="Round"/>
+    <Setter Property="StrokeEndLineCap" Value="Round"/>
+    <Setter Property="StrokeLineJoin" Value="Round"/>
+    <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
+  </Style>
+  <!-- The glyph for MinorIconButton. Same 2px stroke: thinning it as well as shrinking it
+       would leave the cluster looking disabled rather than secondary. -->
+  <Style x:Key="IconStrokeSmall" TargetType="Path" BasedOn="{StaticResource IconStroke}">
+    <Setter Property="Width" Value="13"/><Setter Property="Height" Value="13"/>
+  </Style>
+</ResourceDictionary>

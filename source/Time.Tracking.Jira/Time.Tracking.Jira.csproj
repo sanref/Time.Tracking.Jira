@@ -1,0 +1,75 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- WPF y WinForms conviven en este mismo exe: toda la interfaz es WPF, pero el icono de
+         bandeja (NotifyIcon) y el selector de archivo de Settings siguen siendo WinForms. -->
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Framework-dependent: el instalador verifica que este el .NET Desktop Runtime.
+         LatestMajor deja que la app siga arrancando si el parque salta a un major mayor. -->
+    <SelfContained>false</SelfContained>
+    <RollForward>LatestMajor</RollForward>
+
+    <AssemblyName>Time.Tracking.Jira</AssemblyName>
+    <RootNamespace>Time.Tracking.Jira</RootNamespace>
+    <ApplicationIcon>clock.ico</ApplicationIcon>
+    <ProjectGuid>{B7C11B2A-F064-4BA4-BD87-954197D7FF35}</ProjectGuid>
+
+    <!-- Los atributos de assembly siguen viniendo de Properties\AssemblyInfo.cs y del
+         AssemblyInfo.Generated.cs que escribe Build\UpdateAssemblyVersion.ps1 con GitVersion.
+         De ahi salen los recursos de version del exe, que es de donde el instalador lee
+         AppVersion, asi que no se deben generar tambien desde el SDK. -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Cache de restore del formato viejo: no es codigo del proyecto y el glob por
+         defecto lo tomaria. -->
+    <Compile Remove="packages\**" />
+    <EmbeddedResource Remove="packages\**" />
+    <None Remove="packages\**" />
+    <Page Remove="packages\**" />
+    <Resource Remove="packages\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Solo para que gitversion.exe quede disponible en la cache de NuGet; los targets
+         propios del paquete se desactivan porque la version la escribe el script. -->
+    <PackageReference Include="GitVersion.MsBuild" Version="6.7.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <GetVersion>false</GetVersion>
+    <UpdateAssemblyInfo>false</UpdateAssemblyInfo>
+    <GenerateGitVersionInformation>false</GenerateGitVersionInformation>
+    <WriteVersionInfoToBuildLog>false</WriteVersionInfoToBuildLog>
+    <UpdateVersionProperties>false</UpdateVersionProperties>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <Target Name="GitVersionPreBuild" BeforeTargets="CoreCompile;BeforeBuild">
+    <!-- ProjectDir termina en backslash: pasarlo tal cual escaparia la comilla de cierre -->
+    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(ProjectDir)Build\UpdateAssemblyVersion.ps1&quot; -ProjectDir &quot;$(ProjectDir.TrimEnd('\'))&quot; -NuGetPackageRoot &quot;$(NuGetPackageRoot)&quot;" ContinueOnError="true" />
+  </Target>
+
+</Project>

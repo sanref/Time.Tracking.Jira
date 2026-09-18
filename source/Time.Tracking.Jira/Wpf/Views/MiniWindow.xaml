@@ -1,0 +1,89 @@
+<Window x:Class="Time.Tracking.Jira.Wpf.Views.MiniWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Time.Tracking.Jira" Width="380" Height="50"
+        WindowStyle="None" ResizeMode="NoResize" Topmost="True"
+        ShowInTaskbar="False" AllowsTransparency="False"
+        Background="{StaticResource BgBrush}" FontFamily="{StaticResource AppFont}"
+        UseLayoutRounding="True" SnapsToDevicePixels="True"
+        MouseLeftButtonDown="Surface_Drag" MouseDoubleClick="Surface_Restore">
+
+  <!-- Two lines inside a 2px ink frame: the issue the time is logged against, then its
+       parent for context. Drag anywhere, double-click to return to the tracker window. No
+       chrome: the frame is the window.
+
+       The DataContext is the entry the strip was opened on, not the view model: pausing
+       clears LedgerViewModel.RunningEntry, and a strip bound to that would blank out the
+       moment you paused from it. -->
+  <Border BorderBrush="{StaticResource TextBrush}" BorderThickness="2">
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="6"/>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- Running = accent bar. Paused drops it to the divider grey. -->
+      <Border Grid.Column="0">
+        <Border.Style>
+          <Style TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource DividerBrush}"/>
+            <Style.Triggers>
+              <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+              </DataTrigger>
+            </Style.Triggers>
+          </Style>
+        </Border.Style>
+      </Border>
+
+      <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="9,0,8,0">
+        <!-- Line 1: the key the time is booked against (subtask when there is one) -->
+        <TextBlock FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding TimerSummary}">
+          <Run Text="{Binding TimerKey, Mode=OneWay}" FontWeight="ExtraBold"/>
+          <Run Text="   "/>
+          <Run Text="{Binding TimerSummary, Mode=OneWay}" Foreground="{StaticResource MutedTextBrush}"/>
+        </TextBlock>
+        <!-- Line 2: the parent, for context. Hidden when there is no subtask, since line 1
+             is already showing the parent then. -->
+        <TextBlock FontSize="10" Margin="0,2,0,0" Foreground="{StaticResource MutedTextBrush}"
+                   TextTrimming="CharacterEllipsis" ToolTip="{Binding ParentSummary}">
+          <TextBlock.Style>
+            <Style TargetType="TextBlock">
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding SubtaskKey}" Value="">
+                  <Setter Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </TextBlock.Style>
+          <Run Text="in "/><Run Text="{Binding ParentKey, Mode=OneWay}" FontWeight="Bold"/><Run Text=" — "/><Run Text="{Binding ParentSummary, Mode=OneWay}"/>
+        </TextBlock>
+      </StackPanel>
+
+      <TextBlock Grid.Column="2" Text="{Binding Elapsed}"
+                 Style="{StaticResource TimeText}" FontSize="14" FontWeight="Bold"
+                 Margin="10,0,10,0" VerticalAlignment="Center"/>
+
+      <Button Grid.Column="3" Width="34" Command="{Binding ToggleCommand}"
+              Style="{StaticResource GhostButton}"
+              BorderBrush="{StaticResource DividerBrush}" BorderThickness="2,0,0,0"
+              HorizontalContentAlignment="Center" Padding="0"
+              ToolTip="Pause / resume">
+        <Path Width="13" Height="13">
+          <Path.Style>
+            <Style TargetType="Path" BasedOn="{StaticResource IconFill}">
+              <Setter Property="Data" Value="{StaticResource IcoPlay}"/>
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                  <Setter Property="Data" Value="{StaticResource IcoPause}"/>
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </Path.Style>
+        </Path>
+      </Button>
+    </Grid>
+  </Border>
+</Window>

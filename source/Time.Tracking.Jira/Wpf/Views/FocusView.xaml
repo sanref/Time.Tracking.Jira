@@ -1,0 +1,210 @@
+<UserControl x:Class="Time.Tracking.Jira.Wpf.Views.FocusView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:inf="clr-namespace:Time.Tracking.Jira.Wpf.Infrastructure"
+             xmlns:views="clr-namespace:Time.Tracking.Jira.Wpf.Views"
+             Background="{StaticResource BgBrush}">
+  <UserControl.Resources>
+    <inf:BoolToVisibilityConverter x:Key="BoolVis"/>
+  </UserControl.Resources>
+  <!-- Option 1c. One timer on stage, the rest is a queue. -->
+  <DockPanel>
+    <!-- stage. DataContext is the running entry, so HasRunning has to be reached through
+         the view's own DataContext rather than through the entry. -->
+    <Border DockPanel.Dock="Top" Background="{StaticResource TextBrush}" Padding="24,22"
+            Visibility="{Binding DataContext.HasRunning, RelativeSource={RelativeSource AncestorType=UserControl},
+                                 Converter={StaticResource BoolVis}}"
+            DataContext="{Binding RunningEntry}">
+      <StackPanel>
+        <StackPanel Orientation="Horizontal">
+          <Ellipse Width="7" Height="7" Fill="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+          <TextBlock Text="RUNNING" Margin="8,0,0,0" FontSize="10" FontWeight="Bold"
+                     FontFamily="{StaticResource AppFont}" Foreground="{StaticResource Accent400Brush}"/>
+        </StackPanel>
+        <TextBlock Style="{StaticResource DisplayTimeText}" Foreground="{StaticResource InkOnDarkBrush}"
+                   Background="Transparent" Cursor="Hand" ToolTip="Double-click to edit the time"
+                   Margin="0,8,0,0" Text="{Binding Elapsed}">
+          <TextBlock.InputBindings>
+            <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditTimeCommand}"/>
+          </TextBlock.InputBindings>
+        </TextBlock>
+        <Rectangle Height="2" Fill="{StaticResource OnDarkLineBrush}" Margin="0,16,0,12"/>
+        <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <StackPanel VerticalAlignment="Bottom">
+            <TextBlock Style="{StaticResource KeyText}" FontSize="15" Foreground="{StaticResource InkOnDarkBrush}">
+              <Run Text="{Binding SubtaskKey, Mode=OneWay}"/><Run Text=" · "/><Run Text="{Binding SubtaskSummary, Mode=OneWay}"/>
+            </TextBlock>
+            <TextBlock Style="{StaticResource SummaryText}" Foreground="{StaticResource OnDarkMutedBrush}">
+              <Run Text="in "/><Run Text="{Binding ParentKey, Mode=OneWay}"/><Run Text=" — "/><Run Text="{Binding ParentSummary, Mode=OneWay}"/>
+            </TextBlock>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Orientation="Horizontal">
+            <Button Style="{StaticResource PrimaryButton}" Height="36" Command="{Binding ToggleCommand}" Margin="0,0,8,0">
+              <StackPanel Orientation="Horizontal">
+                <Path Style="{StaticResource IconFill}" Data="{StaticResource IcoPause}"/>
+                <TextBlock Text="Pause" Margin="7,0,0,0"/>
+              </StackPanel>
+            </Button>
+            <Button Style="{StaticResource OnDarkButton}" Height="36" Command="{Binding LogCommand}">
+              <StackPanel Orientation="Horizontal">
+                <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoUpload}"/>
+                <TextBlock Text="Log" Margin="7,0,0,0"/>
+              </StackPanel>
+            </Button>
+            <!-- On the dark stage a tint would not read, so pinned inverts the button:
+                 light field, ink glyph — visible without borrowing the accent. -->
+            <Button Height="36" Width="40" Padding="0" Margin="8,0,0,0"
+                    HorizontalContentAlignment="Center" Command="{Binding PinCommand}"
+                    ToolTip="Pin to the top of the queue">
+              <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource OnDarkButton}">
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsPinned}" Value="True">
+                      <Setter Property="Background" Value="{StaticResource InkOnDarkBrush}"/>
+                      <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                      <Setter Property="ToolTip" Value="Unpin — let the row back down the queue"/>
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </Button.Style>
+              <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoPin}"/>
+            </Button>
+            <inf:MenuButton Height="36" Width="40" Padding="0" Margin="8,0,0,0"
+                            HorizontalContentAlignment="Center" Style="{StaticResource OnDarkButton}"
+                            ToolTip="More actions">
+              <Path Style="{StaticResource IconFill}" Data="{StaticResource IcoMore}" Width="15" Height="15"/>
+              <inf:MenuButton.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="Open in Jira" Command="{Binding OpenInJiraCommand}"/>
+                  <MenuItem Header="Edit issue or subtask" Command="{Binding EditCommand}"/>
+                  <MenuItem Header="Reset timer to zero" Command="{Binding ResetCommand}"/>
+                </ContextMenu>
+              </inf:MenuButton.ContextMenu>
+            </inf:MenuButton>
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <!-- nothing running: say so, instead of leaving a bare list -->
+    <Border DockPanel.Dock="Top" Background="{StaticResource SurfaceBrush}" Padding="24,18"
+            Visibility="{Binding HasRunning, Converter={StaticResource BoolVis}, ConverterParameter=invert}">
+      <StackPanel>
+        <TextBlock Style="{StaticResource KickerText}" Text="NOTHING RUNNING"/>
+        <TextBlock Style="{StaticResource SummaryText}" FontSize="12.5" Margin="0,4,0,0"
+                   Text="Start one from the queue below, or press its number key."/>
+      </StackPanel>
+    </Border>
+
+    <!-- queue head -->
+    <Border DockPanel.Dock="Top" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,0,2" Padding="20,10">
+      <Grid>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <TextBlock Style="{StaticResource KickerText}" Text="QUEUE" VerticalAlignment="Center"/>
+        <StackPanel Grid.Column="1" Orientation="Horizontal">
+          <views:ActionsBar/>
+          <Button Style="{StaticResource SecondaryButton}" Height="34" Command="{Binding LogAllCommand}" Margin="0,0,8,0">
+            <StackPanel Orientation="Horizontal">
+              <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoUpload}"/>
+              <TextBlock Text="Log all" Margin="7,0,0,0"/>
+            </StackPanel>
+          </Button>
+          <Button Style="{StaticResource PrimaryButton}" Height="34" Command="{Binding AddIssueCommand}">
+            <StackPanel Orientation="Horizontal">
+              <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoPlus}"/>
+              <TextBlock Text="Add issue" Margin="7,0,0,0"/>
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- footer -->
+    <Border DockPanel.Dock="Bottom" Background="{StaticResource SurfaceBrush}" Padding="20,10">
+      <Grid>
+        <TextBlock FontSize="11.5" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center">
+          <Run Text="Today "/><Run Text="{Binding TotalToday, Mode=OneWay}" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+        </TextBlock>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+          <TextBlock Text="{Binding PendingSummary}" FontSize="11" VerticalAlignment="Center"
+                     Foreground="{StaticResource MutedTextBrush}" Margin="0,0,14,0"/>
+          <views:ViewSwitcher/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- queue: the play button switches the timer to that row -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <ItemsControl ItemsSource="{Binding Queue}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border BorderBrush="{StaticResource RowLineBrush}" BorderThickness="0,0,0,1" Padding="20,11">
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/><ColumnDefinition Width="92"/><ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                  <TextBlock Style="{StaticResource KeyText}" FontSize="13">
+                    <Run Text="{Binding SubtaskKey, Mode=OneWay}"/>
+                    <Run Text="{Binding SubtaskSummary, Mode=OneWay}" FontWeight="Normal" Foreground="{StaticResource MutedTextBrush}"/>
+                  </TextBlock>
+                  <TextBlock Style="{StaticResource SummaryText}" FontSize="11">
+                    <Run Text="{Binding ParentKey, Mode=OneWay}"/><Run Text=" — "/><Run Text="{Binding ParentSummary, Mode=OneWay}"/>
+                  </TextBlock>
+                </StackPanel>
+                <TextBlock x:Name="Time" Grid.Column="1" Style="{StaticResource TimeText}" FontSize="15"
+                           Background="Transparent" Cursor="Hand" ToolTip="Double-click to edit the time"
+                           TextAlignment="Right" VerticalAlignment="Center" Text="{Binding Elapsed}">
+                  <TextBlock.InputBindings>
+                    <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditTimeCommand}"/>
+                  </TextBlock.InputBindings>
+                </TextBlock>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="12,0,0,0">
+                  <Button Style="{StaticResource IconButton}" Width="34" ToolTip="Start this one"
+                          Command="{Binding ToggleCommand}" Margin="0,0,6,0">
+                    <Path Style="{StaticResource IconFill}" Data="{StaticResource IcoPlay}"/>
+                  </Button>
+                  <Button Style="{StaticResource IconButton}" ToolTip="Log to Jira"
+                          Command="{Binding LogCommand}">
+                    <Path Style="{StaticResource IconStroke}" Data="{StaticResource IcoUpload}"/>
+                  </Button>
+                  <!-- Same quiet cluster the ledger rows use -->
+                  <Border Width="1" Height="20" Background="{StaticResource RowLineBrush}" Margin="8,0,8,0"/>
+                  <Button x:Name="PinBtn" Style="{StaticResource MinorIconButton}" Margin="0,0,2,0"
+                          ToolTip="Pin to the top of the queue" Command="{Binding PinCommand}">
+                    <Path Style="{StaticResource IconStrokeSmall}" Data="{StaticResource IcoPin}"/>
+                  </Button>
+                  <inf:MenuButton Style="{StaticResource MinorIconButton}" Margin="0,0,2,0" ToolTip="More actions">
+                    <Path Style="{StaticResource IconFill}" Data="{StaticResource IcoMore}" Width="13" Height="13"/>
+                    <inf:MenuButton.ContextMenu>
+                      <ContextMenu>
+                        <MenuItem Header="Open in Jira" Command="{Binding OpenInJiraCommand}"/>
+                        <MenuItem Header="Edit issue or subtask" Command="{Binding EditCommand}"/>
+                        <MenuItem Header="Reset timer to zero" Command="{Binding ResetCommand}"/>
+                      </ContextMenu>
+                    </inf:MenuButton.ContextMenu>
+                  </inf:MenuButton>
+                  <Button Style="{StaticResource MinorIconButton}" ToolTip="Remove from list"
+                          Command="{Binding RemoveCommand}">
+                    <Path Style="{StaticResource IconStrokeSmall}" Data="{StaticResource IcoClose}"/>
+                  </Button>
+                </StackPanel>
+              </Grid>
+            </Border>
+            <DataTemplate.Triggers>
+              <DataTrigger Binding="{Binding HasTime}" Value="False">
+                <Setter TargetName="Time" Property="Foreground" Value="{StaticResource FaintTextBrush}"/>
+              </DataTrigger>
+              <DataTrigger Binding="{Binding IsPinned}" Value="True">
+                <Setter TargetName="PinBtn" Property="Background" Value="{StaticResource ToggleOnBrush}"/>
+                <Setter TargetName="PinBtn" Property="Foreground" Value="{StaticResource InkOnDarkBrush}"/>
+                <Setter TargetName="PinBtn" Property="ToolTip" Value="Unpin — let the row back down the queue"/>
+              </DataTrigger>
+            </DataTemplate.Triggers>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

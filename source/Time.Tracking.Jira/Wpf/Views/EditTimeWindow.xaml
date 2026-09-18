@@ -1,0 +1,62 @@
+<Window x:Class="Time.Tracking.Jira.Wpf.Views.EditTimeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Edit timer" Width="400" SizeToContent="Height"
+        ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BgBrush}" FontFamily="{StaticResource AppFont}"
+        UseLayoutRounding="True" SnapsToDevicePixels="True">
+
+  <StackPanel>
+
+    <!-- Which row is being changed and what it reads right now, stated before asking for the
+         new value: the v3 dialog showed a bare text box. -->
+    <Border Padding="22,18,22,14" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,0,2">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel VerticalAlignment="Bottom">
+          <TextBlock Text="EDITING" Style="{StaticResource KickerText}"/>
+          <TextBlock x:Name="IssueKeyText" FontSize="15" FontWeight="ExtraBold" Margin="0,3,0,0"
+                     TextTrimming="CharacterEllipsis"/>
+          <TextBlock x:Name="IssueSummaryText" Style="{StaticResource SummaryText}"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="20,0,0,0">
+          <TextBlock Text="NOW" Style="{StaticResource KickerText}" TextAlignment="Right"/>
+          <TextBlock x:Name="CurrentTimeText" Style="{StaticResource TimeText}"
+                     FontSize="30" LineHeight="30" TextAlignment="Right" Margin="0,2,0,0"
+                     Foreground="{StaticResource Accent700Brush}"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- NEW TIME -->
+    <StackPanel Margin="22,16,22,16">
+      <TextBlock Text="New time" Style="{StaticResource FieldLabel}" Margin="0,0,0,8"
+                 HorizontalAlignment="Left"/>
+      <TextBox x:Name="TimeBox" Style="{StaticResource ModernTextBox}" Height="40"
+               FontSize="17" FontWeight="Bold" Typography.NumeralAlignment="Tabular"
+               TextChanged="Time_TextChanged"/>
+      <TextBlock x:Name="Hint" Style="{StaticResource SummaryText}" Margin="0,7,0,0"
+                 TextWrapping="Wrap" Text="Jira time: 2h 15m, 45m, 2.25h or 1d 4h."/>
+      <TextBlock x:Name="Error" Style="{StaticResource SummaryText}" Margin="0,7,0,0"
+                 TextWrapping="Wrap" Visibility="Collapsed" FontWeight="SemiBold"
+                 Foreground="{StaticResource Accent700Brush}"
+                 Text="Not a time Jira understands. Try 2h 15m or 2.25h."/>
+    </StackPanel>
+
+    <Border Style="{StaticResource SectionRule}"/>
+
+    <!-- FOOTER -->
+    <Border Background="{StaticResource SurfaceBrush}" Padding="22,14">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Content="Cancel" MinWidth="88" Height="34" IsCancel="True"
+                HorizontalContentAlignment="Center" Style="{StaticResource SecondaryButton}"
+                Click="Cancel_Click"/>
+        <Button Content="Save" MinWidth="88" Height="34" Margin="8,0,0,0" IsDefault="True"
+                HorizontalContentAlignment="Center" Style="{StaticResource PrimaryButton}"
+                Click="Save_Click"/>
+      </StackPanel>
+    </Border>
+  </StackPanel>
+</Window>

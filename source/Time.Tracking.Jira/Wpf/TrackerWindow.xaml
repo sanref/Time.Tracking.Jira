@@ -1,0 +1,49 @@
+<Window x:Class="Time.Tracking.Jira.Wpf.TrackerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:Time.Tracking.Jira.Wpf.Views"
+        Title="Time.Tracking.Jira"
+        Background="{StaticResource BgBrush}" FontFamily="{StaticResource AppFont}"
+        SourceInitialized="Window_SourceInitialized" Loaded="Window_Loaded"
+        Closing="Window_Closing" StateChanged="Window_StateChanged" KeyDown="Window_KeyDown">
+
+  <Window.Resources>
+    <DataTemplate x:Key="LedgerTemplate"><views:LedgerView/></DataTemplate>
+    <DataTemplate x:Key="CardsTemplate"><views:CardsView/></DataTemplate>
+    <DataTemplate x:Key="FocusTemplate"><views:FocusView/></DataTemplate>
+    <DataTemplate x:Key="GridTemplate"><views:GridView/></DataTemplate>
+  </Window.Resources>
+
+  <!-- Global shortcuts, so they work whichever view is shown. There is no text input on
+       this window, so Space and R can be bare. The 1..9 keys are handled in code-behind
+       (Window_KeyDown) rather than here: a KeyBinding for a plain ICommand marks the key
+       event handled the moment its gesture matches, whether the command ran or not, so it
+       would eat a digit typed into the Ledger's inline cell editor before the search saw it.
+       The code-behind handler leaves the digit alone while that editor is up. -->
+  <Window.InputBindings>
+    <KeyBinding Key="Space" Command="{Binding PauseResumeCommand}"/>
+    <KeyBinding Key="R" Command="{Binding ResetRunningCommand}"/>
+    <KeyBinding Key="Up" Modifiers="Control" Command="{Binding LogRunningCommand}"/>
+    <KeyBinding Key="N" Modifiers="Control" Command="{Binding AddIssueCommand}"/>
+  </Window.InputBindings>
+
+  <!-- One view model, four layouts. Ledger is the default and the fallback. -->
+  <ContentControl Content="{Binding}">
+    <ContentControl.Style>
+      <Style TargetType="ContentControl">
+        <Setter Property="ContentTemplate" Value="{StaticResource LedgerTemplate}"/>
+        <Style.Triggers>
+          <DataTrigger Binding="{Binding ViewMode}" Value="Cards">
+            <Setter Property="ContentTemplate" Value="{StaticResource CardsTemplate}"/>
+          </DataTrigger>
+          <DataTrigger Binding="{Binding ViewMode}" Value="Focus">
+            <Setter Property="ContentTemplate" Value="{StaticResource FocusTemplate}"/>
+          </DataTrigger>
+          <DataTrigger Binding="{Binding ViewMode}" Value="Grid">
+            <Setter Property="ContentTemplate" Value="{StaticResource GridTemplate}"/>
+          </DataTrigger>
+        </Style.Triggers>
+      </Style>
+    </ContentControl.Style>
+  </ContentControl>
+</Window>
